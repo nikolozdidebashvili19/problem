@@ -1,8 +1,17 @@
+import { LOCALES, USER_ROLES, USER_STATUSES } from '@/shared/const/roles.const';
+
+export type UserRole = (typeof USER_ROLES)[number];
+
+export type UserStatus = (typeof USER_STATUSES)[number];
+
+export type Locale = (typeof LOCALES)[number];
+
 export type User = {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'admin';
+  role: UserRole;
+  status: UserStatus;
   avatar?: string;
 };
 

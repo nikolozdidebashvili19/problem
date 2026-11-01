@@ -1,4 +1,8 @@
-export const APP_NAME = 'NextJS Starter';
+export const APP_NAME = 'Problem.ge';
 
-export const APP_DESCRIPTION =
-  'A production-ready Next.js starter with auth, database, state management, and tests.';
+export const APP_TIME_ZONE = 'Asia/Tbilisi';
+
+// Stores the visitor's language choice; absent → Georgian
+export const LOCALE_COOKIE = 'NEXT_LOCALE';
+
+export const LOCALE_COOKIE_MAX_AGE_S = 60 * 60 * 24 * 365;

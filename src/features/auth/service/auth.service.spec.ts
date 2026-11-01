@@ -41,11 +41,11 @@ describe('registerService', () => {
     expect(result.data).toEqual({ message: 'Account created' });
   });
 
-  it('creates user with default role "user"', async () => {
+  it('creates user with default role "citizen"', async () => {
     mockRepo.findByEmail.mockResolvedValueOnce(null);
     mockRepo.create.mockResolvedValueOnce('507f1f77bcf86cd799439011');
     await registerService({ fullName: 'Bob', email: 'bob@example.com', password: 'password123' });
-    expect(mockRepo.create).toHaveBeenCalledWith(expect.objectContaining({ role: 'user', name: 'Bob' }));
+    expect(mockRepo.create).toHaveBeenCalledWith(expect.objectContaining({ role: 'citizen', status: 'active', name: 'Bob' }));
   });
 });
 

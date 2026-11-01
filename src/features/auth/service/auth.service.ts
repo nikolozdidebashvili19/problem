@@ -1,8 +1,20 @@
 import { userRepository } from '@/features/auth/repository/user.repository';
-import { User } from '@/features/auth/types/auth.types';
+import { UserDocument } from '@/features/auth/schema/user.schema';
+import { User, UserRole, UserStatus } from '@/features/auth/types/auth.types';
 import { LoginType, SignUpType } from '@/features/auth/validations/auth.validation';
 import { ServiceResult } from '@/shared/types/common';
 import { hashPassword } from '@/shared/utils/password';
+
+function toUser(user: UserDocument): User {
+  return {
+    id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    role: user.role as UserRole,
+    status: user.status as UserStatus,
+    avatar: user.avatar ?? undefined,
+  };
+}
 
 export async function registerService(
   input: SignUpType
@@ -12,9 +24,11 @@ export async function registerService(
 
   await userRepository.create({
     name: input.fullName,
+    displayName: input.fullName,
     email: input.email,
     passwordHash: hashPassword(input.password),
-    role: 'user',
+    role: 'citizen',
+    status: 'active',
   });
 
   return { data: { message: 'Account created' }, status: 201 };
@@ -29,32 +43,14 @@ export async function loginService(input: LoginType): Promise<ServiceResult<User
     return { data: { error: 'INVALID_CREDENTIALS' }, status: 401 };
   }
 
-  return {
-    data: {
-      id: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      role: user.role as 'user' | 'admin',
-      avatar: user.avatar ?? undefined,
-    },
-    status: 200,
-  };
+  return { data: toUser(user), status: 200 };
 }
 
 export async function getUserByIdService(id: string): Promise<ServiceResult<User>> {
   const user = await userRepository.findById(id);
   if (!user) return { data: { error: 'NOT_FOUND' }, status: 404 };
 
-  return {
-    data: {
-      id: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      role: user.role as 'user' | 'admin',
-      avatar: user.avatar ?? undefined,
-    },
-    status: 200,
-  };
+  return { data: toUser(user), status: 200 };
 }
 
 export async function upsertOAuthUserService(data: {
@@ -64,6 +60,7 @@ export async function upsertOAuthUserService(data: {
 }): Promise<{ isNew: boolean }> {
   const existing = await userRepository.findByEmail(data.email);
   if (existing) {
+    // displayName is user-chosen, so only the Google-owned fields are refreshed
     await userRepository.updateByEmail(data.email, {
       name: data.name,
       avatar: data.avatar ?? undefined,
@@ -72,9 +69,11 @@ export async function upsertOAuthUserService(data: {
   }
   await userRepository.create({
     name: data.name,
+    displayName: data.name,
     email: data.email,
     passwordHash: '',
-    role: 'user',
+    role: 'citizen',
+    status: 'active',
     avatar: data.avatar ?? undefined,
   });
   return { isNew: true };

@@ -30,7 +30,7 @@ const fakeUser = {
   name: 'Alice',
   email: 'alice@example.com',
   passwordHash: 'hash',
-  role: 'user' as const,
+  role: 'citizen' as const,
 };
 
 function makeLeanQuery<T>(result: T) {
@@ -55,7 +55,7 @@ describe('userRepository', () => {
 
   it('create calls model.create and returns id string', async () => {
     (mockModel.create as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ _id: { toString: () => '507f1f77bcf86cd799439011' } });
-    const id = await userRepository.create({ name: 'Bob', email: 'bob@test.com', passwordHash: 'hash', role: 'user' });
+    const id = await userRepository.create({ name: 'Bob', email: 'bob@test.com', passwordHash: 'hash', role: 'citizen' });
     expect(id).toBe('507f1f77bcf86cd799439011');
   });
 });

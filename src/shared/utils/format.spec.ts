@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { formatDate, truncate, capitalize } from './format';
+import { formatDate, formatReportDate, truncate, capitalize } from './format';
 
 describe('formatDate', () => {
   it('formats a date object', () => {
@@ -39,5 +39,19 @@ describe('capitalize', () => {
 
   it('handles empty string', () => {
     expect(capitalize('')).toBe('');
+  });
+});
+
+describe('formatReportDate', () => {
+  it('formats in Tbilisi time regardless of the machine time zone', () => {
+    // 22:30 UTC on Oct 31 is already Nov 1 in Tbilisi (UTC+4)
+    expect(formatReportDate('2026-10-31T22:30:00Z', 'en')).toBe('1 Nov 2026');
+  });
+});
+
+describe('formatReportDate in Georgian', () => {
+  it('uses Georgian month names by default', () => {
+    expect(formatReportDate('2026-10-31T22:30:00Z')).toBe('1 ნოე. 2026');
+    expect(formatReportDate('2026-10-31T22:30:00Z', 'en')).toBe('1 Nov 2026');
   });
 });

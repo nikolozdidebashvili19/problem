@@ -1,11 +1,12 @@
-import { APP_NAME } from '@/shared/const/app.const';
+import { useTranslations } from 'next-intl';
 
 export const Footer = () => {
+  const t = useTranslations('common');
+
   return (
-    <footer className="border-t border-border px-6 py-6 sm:px-10">
-      <p className="text-center text-xs text-muted-foreground">
-        {APP_NAME} ships with Next.js 16, NextAuth v5, Mongoose, Zustand, and shadcn/ui.
-      </p>
+    <footer className="mt-auto border-t border-border pt-5 text-xs text-muted-foreground">
+      <p>{t('freeNotice')}</p>
+      <p className="mt-1">{t('emergencyNotice')}</p>
     </footer>
   );
 };

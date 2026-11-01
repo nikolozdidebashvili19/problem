@@ -102,13 +102,14 @@ describe('auth callbacks — jwt', () => {
     expect(token.avatar).toBe('https://example.com/avatar.png');
   });
 
-  it('defaults role to "user" when DB user not found', async () => {
+  it('defaults role to "citizen" when DB user not found', async () => {
     mockRepo.findByEmail.mockResolvedValueOnce(null);
     const token = await capturedConfig.callbacks.jwt({
       token: { email: 'nobody@example.com' },
       user: undefined,
     });
-    expect(token.role).toBe('user');
+    expect(token.role).toBe('citizen');
+    expect(token.status).toBe('active');
   });
 
   it('sets token fields from user on initial sign-in', async () => {
@@ -141,11 +142,11 @@ describe('auth callbacks — session', () => {
     expect(result.user.avatar).toBe('https://example.com/avatar.png');
   });
 
-  it('defaults role to "user" when token has no role', async () => {
+  it('defaults role to "citizen" when token has no role', async () => {
     const session = { user: {}, expires: '2099-01-01' };
     const token = { id: 'x', email: 'a@b.com', name: 'A', avatar: null };
     const result = await capturedConfig.callbacks.session({ session, token });
-    expect(result.user.role).toBe('user');
+    expect(result.user.role).toBe('citizen');
   });
 
   it('sets avatar to null when token avatar is undefined', async () => {

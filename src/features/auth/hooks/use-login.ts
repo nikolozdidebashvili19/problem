@@ -4,7 +4,12 @@ import { signIn, getSession } from 'next-auth/react';
 import { useAuthStore } from '@/features/auth/hooks/useAuthStore';
 import { User } from '@/features/auth/types/auth.types';
 import { LoginType } from '@/features/auth/validations/auth.validation';
+import { safeCallbackUrl } from '@/shared/utils/safe-callback-url';
 
+// Where the proxy sent the user from (e.g. /report/new), read at submit time
+export function getCallbackUrl(): string {
+  return safeCallbackUrl(new URLSearchParams(window.location.search).get('callbackUrl'));
+}
 
 export const useLogin = () => {
   const { setUser, setLoading, setError } = useAuthStore();
@@ -18,11 +23,13 @@ export const useLogin = () => {
       id: sessionUser.id ?? '',
       name: sessionUser.name ?? '',
       email: sessionUser.email ?? '',
-      role: sessionUser.role ?? 'user',
+      role: sessionUser.role ?? 'citizen',
+      status: sessionUser.status ?? 'active',
       avatar: sessionUser.avatar ?? '',
     });
 
-    window.location.href = sessionUser.role === 'admin' ? '/dashboard' : '/';
+    // Full navigation so every server component re-renders with the new session
+    window.location.href = getCallbackUrl();
   };
 
   const login = async (data: LoginType) => {
@@ -36,15 +43,16 @@ export const useLogin = () => {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        // Error codes, translated by the form (auth.errors.*)
+        setError('INVALID_CREDENTIALS');
         return;
       }
 
       if (result?.ok) {
         await handleSession(setUser);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+    } catch {
+      setError('LOGIN_FAILED');
     } finally {
       setLoading(false);
     }

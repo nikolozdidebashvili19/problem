@@ -304,12 +304,19 @@ Ask these exact axes; each meaningfully changes the design:
 
 ```
 STATUS: locked
-Product:    SaaS dashboard / B2B
-Palette:    Monochrome + electric indigo accent
-            base #FAFAFA (light) / #0A0A0A (dark); accent #5B5BFF
-            tokens: --primary oklch(0.555 0.243 271) light / oklch(0.62 0.21 271) dark
-Type:       Geometric sans — Space Grotesk (display, 500/600/700) + Inter (body) + Geist Mono (data)
-Feel:       Balanced — CSS load-rise stagger + hover micro-interactions; reduced-motion respected
-Signature:  Left-aligned typographic hero with one accent word + honest stat strip;
-            dashboard app-shell with mobile drawer sidebar and segmented indigo channel meters
+Product:    Consumer civic app (Problem.ge) — community feed for reporting local problems, forum-style layout
+Palette:    Clean white + subtle gray borders + dark text; blue accent, orange action buttons
+            surfaces #FFFFFF, muted #F6F7F8, border #E3E6EA, text #1C1E21, muted text #5F6B7A
+            --primary (orange buttons/upvote) #C2410C oklch(0.553 0.195 38.4) — orange-700, AA with white text
+            --link / --ring (links, focus, active nav) #2563EB oklch(0.546 0.245 262.9)
+            dark mode: bg oklch(0.17 0.005 265), primary orange-500 with dark text, link blue-400
+            status badges use text + color (slate/blue/amber/violet/emerald/red, see StatusBadge)
+Type:       Clean sans — Inter (UI, 400/500/600/700) with Noto Sans Georgian fallback for Georgian glyphs;
+            headings = same family, semibold. Geist Mono only for numeric data if needed.
+Feel:       Minimal & calm — no load animations in the feed; color/border transitions on hover only;
+            reduced-motion respected
+Signature:  Sticky top bar (logo · search · Report button · account); left sidebar with feeds
+            (Popular / Newest / Fixed), Tbilisi districts and categories; central feed of bordered
+            problem cards (vote column · photo · title · excerpt · location · status badge);
+            sidebar becomes a slide-in drawer on mobile
 ```
