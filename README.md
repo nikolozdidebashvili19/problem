@@ -156,3 +156,5 @@ docker compose down -v
 - Remote image optimization is limited to Google OAuth avatars by default.
 - `npm audit fix` has been applied without force. A package override keeps
   transitive `postcss` on the patched version used by the toolchain.
+
+# problem
