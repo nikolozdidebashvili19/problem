@@ -67,7 +67,7 @@ export const KA_MESSAGES = {
     },
   },
   report: {
-    by: 'ავტორი: {name}',
+    by: 'ავტორი: <author>{name}</author>',
     photos: '{count} ფოტო',
     fixedOn: 'მოგვარდა {date}',
     upvote: 'მხარდაჭერა: „{title}“',

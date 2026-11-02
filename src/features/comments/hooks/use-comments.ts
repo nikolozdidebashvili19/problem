@@ -17,7 +17,11 @@ export const useComments = (shortId: string, initial: CommentPage) => {
     setLoadingMore(true);
     try {
       const page = await http.get<CommentPage>(`/reports/${shortId}/comments`, { params: { after: cursor } });
-      setItems((current) => [...current, ...page.items]);
+      // A comment posted in this session can come back in a later page
+      setItems((current) => {
+        const known = new Set(current.map((comment) => comment.id));
+        return [...current, ...page.items.filter((comment) => !known.has(comment.id))];
+      });
       setCursor(page.nextCursor);
     } catch (loadError) {
       setError(loadError);
@@ -27,10 +31,10 @@ export const useComments = (shortId: string, initial: CommentPage) => {
   };
 
   // Returns true when posted so the form can reset
-  const add = async (body: string): Promise<boolean> => {
+  const add = async (body: string, parentId?: string): Promise<boolean> => {
     setError(null);
     try {
-      const comment = await http.post<CommentView>(`/reports/${shortId}/comments`, { body });
+      const comment = await http.post<CommentView>(`/reports/${shortId}/comments`, { body, parentId });
       setItems((current) => [...current, comment]);
       setDelta((value) => value + 1);
       return true;

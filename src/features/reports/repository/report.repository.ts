@@ -1,9 +1,10 @@
+import mongoose, { type QueryFilter, type UpdateQuery } from 'mongoose';
+
 import { ReportDocument, ReportModel } from '@/features/reports/schema/report.schema';
 import { ReportImage } from '@/features/reports/types/report.types';
 import { HOT_SCORE_DECAY_S, HOT_SCORE_EPOCH_S } from '@/shared/const/feed.const';
 import { mongo } from '@/shared/lib/mongo';
 
-import type { QueryFilter, UpdateQuery } from 'mongoose';
 
 type ReportSort = Record<string, 1 | -1>;
 
@@ -21,6 +22,21 @@ export const reportRepository = {
   async findFeed(filter: QueryFilter<ReportDocument>, sort: ReportSort, limit: number): Promise<ReportDocument[]> {
     await mongo.connect();
     return ReportModel.find(filter).sort(sort).limit(limit).lean<ReportDocument[]>().exec();
+  },
+
+  async count(filter: QueryFilter<ReportDocument>): Promise<number> {
+    await mongo.connect();
+    return ReportModel.countDocuments(filter).exec();
+  },
+
+  // Aggregations do not cast strings, so the id is converted here
+  async sumUpvotesByAuthor(authorId: string): Promise<number> {
+    await mongo.connect();
+    const [result] = await ReportModel.aggregate<{ total: number }>([
+      { $match: { authorId: new mongoose.Types.ObjectId(authorId), hidden: false } },
+      { $group: { _id: null, total: { $sum: '$upvoteCount' } } },
+    ]).exec();
+    return result?.total ?? 0;
   },
 
   async findById(id: string): Promise<ReportDocument | null> {

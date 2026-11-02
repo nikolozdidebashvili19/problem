@@ -67,6 +67,7 @@ export async function buildReportCards(reports: ReportDocument[], viewerId?: str
       commentCount: report.commentCount ?? 0,
       hasVoted: votedReportIds.has(report._id.toString()),
       canVote: isVotableStatus(report.status) && !isOwn,
+      authorId: report.authorId.toString(),
       // null = deleted account; the UI renders a localized placeholder
       authorName: !author || author.deletedAt ? null : author.displayName || author.name,
       createdAt: report.createdAt.toISOString(),

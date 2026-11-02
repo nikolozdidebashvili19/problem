@@ -91,6 +91,7 @@ ReportSchema.index({ 'location.municipality': 1, status: 1, hotScore: -1 });
 ReportSchema.index({ 'location.neighborhood': 1, status: 1, hotScore: -1 });
 ReportSchema.index({ categorySlug: 1, status: 1, hotScore: -1 });
 ReportSchema.index({ authorId: 1, createdAt: -1 });
+ReportSchema.index({ 'fixEvidence.by': 1, fixedAt: -1 }, { sparse: true });
 ReportSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 ReportSchema.index({ title: 'text', description: 'text' }, { default_language: 'none' });
 

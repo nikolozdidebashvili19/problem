@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { CategoryIcon } from '@/features/categories/components/category-icon';
+import { AuthorName } from '@/features/profiles/components/author-name';
 import { StatusBadge } from '@/features/reports/components/status-badge';
 import { UpvoteButton } from '@/features/reports/components/upvote-button';
 import { ReportCard as ReportCardData } from '@/features/reports/types/report.types';
@@ -80,14 +81,14 @@ export const ReportCard = ({ report }: ReportCardProps) => {
               fill
               unoptimized
               sizes="(min-width: 1024px) 640px, 100vw"
-              className="object-cover"
+              className="object-contain"
             />
           </Link>
         )}
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs text-muted-foreground">
           <StatusBadge status={report.status} />
-          <span>{t('by', { name: report.authorName ?? t('deletedUser') })}</span>
+          <AuthorName authorId={report.authorId} name={report.authorName} />
           <Link href={`${href}#comments-heading`} className="inline-flex items-center gap-1 rounded-sm hover:text-link">
             <MessageSquare aria-hidden="true" className="size-3.5" />
             {tPage('comments', { count: report.commentCount })}

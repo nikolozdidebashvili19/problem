@@ -1,21 +1,18 @@
 'use client';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Send, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
-import { useForm } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
+import { CommentForm } from '@/features/comments/components/comment-form';
+import { CommentItem } from '@/features/comments/components/comment-item';
 import { useComments } from '@/features/comments/hooks/use-comments';
-import { CommentPage } from '@/features/comments/types/comment.types';
-import { CommentFormSchema, CommentFormType } from '@/features/reports/validations/report.validation';
+import { CommentPage, CommentView } from '@/features/comments/types/comment.types';
 import { Button } from '@/shared/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/shared/components/ui/form';
-import { Textarea } from '@/shared/components/ui/textarea';
 import { ROUTES } from '@/shared/const/routes.const';
 import { useErrorMessage } from '@/shared/hooks/use-error-message';
-import { cn } from '@/shared/lib/utils';
-import { formatReportDate } from '@/shared/utils/format';
+import { groupCommentThreads } from '@/shared/utils/comment-threads';
 
 type CommentSectionProps = {
   shortId: string;
@@ -24,32 +21,31 @@ type CommentSectionProps = {
   signedIn: boolean;
 };
 
-const initials = (name: string) =>
-  name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
-
 export const CommentSection = ({ shortId, initial, total, signedIn }: CommentSectionProps) => {
   const t = useTranslations('comments');
-  const tReport = useTranslations('report');
   const tCommon = useTranslations('common');
-  const locale = useLocale();
   const pathname = usePathname();
   const errorMessage = useErrorMessage();
   const { items, delta, hasMore, loadingMore, loadMore, add, remove, error } = useComments(shortId, initial);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
-  const form = useForm<CommentFormType>({
-    resolver: zodResolver(CommentFormSchema),
-    defaultValues: { body: '' },
-  });
-  const posting = form.formState.isSubmitting;
-
-  const submit = async (values: CommentFormType) => {
-    if (await add(values.body)) form.reset();
+  const submitReply = async (commentId: string, body: string) => {
+    const posted = await add(body, commentId);
+    if (posted) setReplyingTo(null);
+    return posted;
   };
+
+  const renderComment = (comment: CommentView) => (
+    <CommentItem
+      comment={comment}
+      canReply={signedIn}
+      replying={replyingTo === comment.id}
+      onReplyOpen={() => setReplyingTo(comment.id)}
+      onReplyClose={() => setReplyingTo(null)}
+      onReplySubmit={(body) => submitReply(comment.id, body)}
+      onDelete={() => remove(comment.id)}
+    />
+  );
 
   return (
     <section aria-labelledby="comments-heading" className="flex flex-col gap-4">
@@ -58,27 +54,7 @@ export const CommentSection = ({ shortId, initial, total, signedIn }: CommentSec
       </h2>
 
       {signedIn ? (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(submit)} noValidate className="flex flex-col gap-2">
-            <FormField
-              control={form.control}
-              name="body"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="sr-only">{t('label')}</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={3} placeholder={t('placeholder')} className="min-h-20" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={posting} className="h-10 self-end rounded-full px-5 font-semibold">
-              {posting ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : <Send aria-hidden="true" className="size-4" />}
-              {posting ? t('posting') : t('post')}
-            </Button>
-          </form>
-        </Form>
+        <CommentForm label={t('label')} placeholder={t('placeholder')} onSubmit={(body) => add(body)} />
       ) : (
         <p className="rounded-lg border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
           <Link
@@ -101,41 +77,18 @@ export const CommentSection = ({ shortId, initial, total, signedIn }: CommentSec
         <p className="text-sm text-muted-foreground">{t('empty')}</p>
       ) : (
         <ul className="flex flex-col divide-y divide-border rounded-lg border border-border bg-card">
-          {items.map((comment) => {
-            const name = comment.authorName ?? tReport('deletedUser');
-            return (
-              <li key={comment.id} className="flex gap-3 p-3 sm:p-4">
-                <span
-                  aria-hidden="true"
-                  className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground"
-                >
-                  {initials(name) || '?'}
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">{name}</span>
-                    <span aria-hidden="true">·</span>
-                    <time dateTime={comment.createdAt}>{formatReportDate(comment.createdAt, locale)}</time>
-                    {comment.canDelete && (
-                      <button
-                        type="button"
-                        onClick={() => remove(comment.id)}
-                        aria-label={t('delete')}
-                        title={t('delete')}
-                        className={cn(
-                          'ml-auto inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors',
-                          'outline-none hover:bg-accent hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring/50'
-                        )}
-                      >
-                        <Trash2 aria-hidden="true" className="size-4" />
-                      </button>
-                    )}
-                  </div>
-                  <p className="whitespace-pre-line break-words text-sm text-foreground">{comment.body}</p>
-                </div>
-              </li>
-            );
-          })}
+          {groupCommentThreads(items).map((thread) => (
+            <li key={thread.id} className="flex flex-col gap-3 p-3 sm:p-4">
+              {thread.root ? renderComment(thread.root) : <p className="text-sm text-muted-foreground">{t('deletedComment')}</p>}
+              {thread.replies.length > 0 && (
+                <ul aria-label={t('repliesLabel')} className="ml-4 flex flex-col gap-3 border-l border-border pl-3 sm:ml-11">
+                  {thread.replies.map((reply) => (
+                    <li key={reply.id}>{renderComment(reply)}</li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
         </ul>
       )}
 

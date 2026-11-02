@@ -6,6 +6,8 @@ const CommentSchema = new Schema(
   {
     reportId: { type: Schema.Types.ObjectId, ref: 'Report', required: true },
     authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    // Top-level comment this replies to; threads are one level deep
+    parentId: { type: Schema.Types.ObjectId, ref: 'Comment', required: false },
     body: { type: String, required: true, minlength: 1, maxlength: COMMENT_MAX },
     // Soft delete keeps moderation history; deleted comments are never returned
     deletedAt: { type: Date, required: false },
@@ -14,6 +16,7 @@ const CommentSchema = new Schema(
 );
 
 CommentSchema.index({ reportId: 1, deletedAt: 1, createdAt: 1, _id: 1 });
+CommentSchema.index({ authorId: 1, deletedAt: 1, createdAt: -1, _id: -1 });
 
 export type CommentDocument = InferSchemaType<typeof CommentSchema> & {
   _id: mongoose.Types.ObjectId;

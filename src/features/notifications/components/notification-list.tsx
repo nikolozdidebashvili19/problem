@@ -22,9 +22,9 @@ export const NotificationList = ({ initial }: NotificationListProps) => {
 
   const message = (item: NotificationView) => {
     const title = item.report?.title ?? t('removedReport');
-    return item.type === 'comment'
-      ? t('comment', { title, actor: item.actorName ?? tReport('deletedUser') })
-      : t('reportFixed', { title });
+    if (item.type === 'report_fixed') return t('reportFixed', { title });
+    const actor = item.actorName ?? tReport('deletedUser');
+    return item.type === 'comment_reply' ? t('commentReply', { title, actor }) : t('comment', { title, actor });
   };
 
   if (items.length === 0) {
@@ -50,16 +50,17 @@ export const NotificationList = ({ initial }: NotificationListProps) => {
 
       <ul className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
         {items.map((item) => {
-          const Icon = item.type === 'comment' ? MessageSquare : CircleCheckBig;
+          const fixed = item.type === 'report_fixed';
+          const Icon = fixed ? CircleCheckBig : MessageSquare;
           const content = (
             <>
               <span
                 aria-hidden="true"
                 className={cn(
                   'flex size-9 shrink-0 items-center justify-center rounded-full',
-                  item.type === 'comment'
-                    ? 'bg-link/10 text-link'
-                    : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                  fixed
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                    : 'bg-link/10 text-link'
                 )}
               >
                 <Icon className="size-4" />

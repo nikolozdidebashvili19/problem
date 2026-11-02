@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { formatDate, formatReportDate, truncate, capitalize } from './format';
+import { formatDate, formatReportDate, getInitials, truncate, capitalize } from './format';
 
 describe('formatDate', () => {
   it('formats a date object', () => {
@@ -25,6 +25,14 @@ describe('truncate', () => {
   it('returns original if within limit', () => {
     const result = truncate('Hi', 10);
     expect(result).toBe('Hi');
+  });
+});
+
+describe('getInitials', () => {
+  it('uses the first letters of up to two words', () => {
+    expect(getInitials('nika didebashvili jr')).toBe('ND');
+    expect(getInitials('  nika ')).toBe('N');
+    expect(getInitials('')).toBe('');
   });
 });
 

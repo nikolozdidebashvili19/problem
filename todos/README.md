@@ -45,7 +45,7 @@ Work top to bottom — tickets list their dependencies.
 | 025 | [Flagging + auto-hide](025-flagging.md) | todo |
 | 026 | [Moderator queue + audit log](026-moderation.md) | todo |
 | 027 | [Edit / delete own report](027-edit-delete.md) | done |
-| 028 | [Profile + settings + account deletion](028-profile.md) | todo |
+| 028 | [Profile + settings + account deletion](028-profile.md) | in-progress |
 | 029 | [Search](029-search.md) | todo |
 | 030 | [Legal pages + emergency disclaimer](030-legal.md) | todo |
 | 031 | [Security headers + Turnstile](031-security.md) | todo |

@@ -9,9 +9,10 @@ type UseFeedPaginationOptions = {
   query: FeedLinkParams;
   initialItems: ReportCard[];
   initialCursor: string | null;
+  endpoint?: string;
 };
 
-export const useFeedPagination = ({ query, initialItems, initialCursor }: UseFeedPaginationOptions) => {
+export const useFeedPagination = ({ query, initialItems, initialCursor, endpoint = '/reports' }: UseFeedPaginationOptions) => {
   const [items, setItems] = useState(initialItems);
   const [cursor, setCursor] = useState(initialCursor);
   const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ export const useFeedPagination = ({ query, initialItems, initialCursor }: UseFee
     setLoading(true);
     setFailed(false);
     try {
-      const page = await http.get<FeedPage>('/reports', { params: { ...query, after: cursor } });
+      const page = await http.get<FeedPage>(endpoint, { params: { ...query, after: cursor } });
       // Dedupe in case a report moved between pages while scrolling
       setItems((current) => {
         const seen = new Set(current.map((item) => item.id));

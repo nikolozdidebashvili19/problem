@@ -16,3 +16,4 @@ load; the owner asked for them in v1 (2026-11-02).
 ## Open
 - Rate limit comments (T-008), flagging comments (T-025), moderator queue entry (T-026).
 - Replies/threads are out of scope.
+- Replies: one level deep (`parentId`). A reply to a reply joins the same thread and prefills an @mention. Notifies the person replied to (`comment_reply`). Deleting a comment keeps its replies under a "comment deleted" placeholder.

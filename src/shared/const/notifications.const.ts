@@ -1,4 +1,4 @@
-export const NOTIFICATION_TYPES = ['comment', 'report_fixed'] as const;
+export const NOTIFICATION_TYPES = ['comment', 'comment_reply', 'report_fixed'] as const;
 
 export const NOTIFICATIONS_PAGE_SIZE = 30;
 

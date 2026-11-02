@@ -4,6 +4,7 @@ import { commentRepository } from '@/features/comments/repository/comment.reposi
 import { CommentDocument } from '@/features/comments/schema/comment.schema';
 import { CommentPage, CommentView } from '@/features/comments/types/comment.types';
 import { notifyService } from '@/features/notifications/service/notification.service';
+import { NewNotification } from '@/features/notifications/types/notification.types';
 import { reportRepository } from '@/features/reports/repository/report.repository';
 import { CommentsQueryType, CreateCommentType } from '@/features/reports/validations/report.validation';
 import { COMMENTS_PAGE_SIZE } from '@/shared/const/reports.const';
@@ -28,7 +29,9 @@ async function toViews(comments: CommentDocument[], viewer: Viewer): Promise<Com
     const author = authorById.get(comment.authorId.toString());
     return {
       id: comment._id.toString(),
+      parentId: comment.parentId?.toString() ?? null,
       body: comment.body,
+      authorId: comment.authorId.toString(),
       authorName: author && !author.deletedAt ? author.displayName || author.name : null,
       createdAt: comment.createdAt.toISOString(),
       canDelete: canDelete(comment, viewer),
@@ -62,6 +65,15 @@ export async function listCommentsService(
   return { data: { items: await toViews(page, viewer), nextCursor }, status: 200 };
 }
 
+// The report author hears about every comment; someone replied to hears about the reply, once if they are both
+function commentNotifications(reportAuthorId: string, repliedTo: CommentDocument | null, reportId: string, actorId: string) {
+  const repliedToId = repliedTo?.authorId.toString();
+  const notifications: NewNotification[] = [];
+  if (repliedToId) notifications.push({ userId: repliedToId, type: 'comment_reply', reportId, actorId });
+  if (reportAuthorId !== repliedToId) notifications.push({ userId: reportAuthorId, type: 'comment', reportId, actorId });
+  return notifications;
+}
+
 export async function createCommentService(
   user: UserDocument,
   shortId: string,
@@ -72,9 +84,20 @@ export async function createCommentService(
 
   const userId = user._id.toString();
   const reportId = report._id.toString();
-  const comment = await commentRepository.create({ reportId, authorId: userId, body: input.body });
+  const repliedTo = input.parentId ? await commentRepository.findById(input.parentId) : null;
+  if (input.parentId && (!repliedTo || repliedTo.deletedAt || repliedTo.reportId.toString() !== reportId)) {
+    return { data: { error: 'COMMENT_NOT_FOUND' }, status: 404 };
+  }
+
+  const comment = await commentRepository.create({
+    reportId,
+    authorId: userId,
+    body: input.body,
+    // A reply to a reply joins the same thread
+    parentId: repliedTo ? (repliedTo.parentId ?? repliedTo._id).toString() : undefined,
+  });
   await reportRepository.incrementCommentCount(reportId, 1);
-  await notifyService([{ userId: report.authorId.toString(), type: 'comment', reportId, actorId: userId }]);
+  await notifyService(commentNotifications(report.authorId.toString(), repliedTo, reportId, userId));
 
   const [view] = await toViews([comment], { id: userId, role: user.role });
   return { data: view, status: 201 };

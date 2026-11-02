@@ -27,6 +27,7 @@ export type ReportCard = {
   commentCount: number;
   hasVoted: boolean;
   canVote: boolean;
+  authorId: string;
   authorName: string | null;
   createdAt: string;
   fixedAt: string | null;

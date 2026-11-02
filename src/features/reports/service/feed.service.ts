@@ -17,7 +17,7 @@ const TAB_QUERY: Record<FeedTab, { statuses: readonly ReportStatus[]; sortField:
   fixed: { statuses: ['fixed'], sortField: 'fixedAt' },
 };
 
-function sortValue(report: ReportDocument, field: SortField): number {
+export function sortValue(report: ReportDocument, field: SortField): number {
   if (field === 'hotScore') return report.hotScore;
   const date = field === 'createdAt' ? report.createdAt : report.fixedAt;
   return date ? date.getTime() : 0;
@@ -33,7 +33,7 @@ export function decodeCursor(cursor: string): { value: number; id: string } {
 }
 
 // Keyset pagination: (sortValue, _id) strictly after the cursor — never `skip` (PRODUCT §8)
-function cursorCondition(field: SortField, cursor: string): QueryFilter<ReportDocument> {
+export function cursorCondition(field: SortField, cursor: string): QueryFilter<ReportDocument> {
   const { value, id } = decodeCursor(cursor);
   const typedValue = field === 'hotScore' ? value : new Date(value);
   return { $or: [{ [field]: { $lt: typedValue } }, { [field]: typedValue, _id: { $lt: id } }] };

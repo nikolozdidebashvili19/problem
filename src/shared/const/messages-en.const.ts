@@ -65,7 +65,7 @@ export const EN_MESSAGES: Messages = {
     },
   },
   report: {
-    by: 'by {name}',
+    by: 'by <author>{name}</author>',
     photos: '{count} photos',
     fixedOn: 'Fixed {date}',
     upvote: 'Upvote “{title}”',

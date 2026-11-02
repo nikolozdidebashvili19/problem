@@ -15,8 +15,10 @@ import { ThemeToggle } from '@/shared/components/layout/theme-toggle';
 import { Button } from '@/shared/components/ui/button';
 import { APP_NAME } from '@/shared/const/app.const';
 import { ROUTES } from '@/shared/const/routes.const';
+import { getInitials } from '@/shared/utils/format';
 
 type SessionUser = {
+  id?: string;
   name?: string | null;
   avatar?: string | null;
   role?: UserRole;
@@ -32,16 +34,12 @@ type HeaderProps = {
 export const Header = ({ onOpenMenu, unreadCount }: HeaderProps) => {
   const t = useTranslations('common');
   const tNav = useTranslations('nav');
+  const tProfile = useTranslations('profile');
   const { data: session } = useSession();
   const { logout } = useLogout();
   const sessionUser = session?.user as SessionUser | undefined;
   const userName = sessionUser?.name ?? '';
-  const initials = userName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
+  const initials = getInitials(userName);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
@@ -94,22 +92,29 @@ export const Header = ({ onOpenMenu, unreadCount }: HeaderProps) => {
                   <Link href="/dashboard">{t('dashboard')}</Link>
                 </Button>
               )}
-              {sessionUser.avatar ? (
-                <Image
-                  src={sessionUser.avatar}
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="size-8 rounded-full border border-border object-cover"
-                />
-              ) : (
-                <span
-                  aria-hidden="true"
-                  className="flex size-8 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground"
-                >
-                  {initials || 'U'}
-                </span>
-              )}
+              <Link
+                href={ROUTES.profile(sessionUser.id ?? '')}
+                aria-label={tProfile('yourProfile')}
+                title={tProfile('yourProfile')}
+                className="inline-flex size-10 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              >
+                {sessionUser.avatar ? (
+                  <Image
+                    src={sessionUser.avatar}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="size-8 rounded-full border border-border object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="flex size-8 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-foreground"
+                  >
+                    {initials || 'U'}
+                  </span>
+                )}
+              </Link>
               <span className="sr-only">{t('signedInAs', { name: userName })}</span>
               <Button
                 variant="ghost"

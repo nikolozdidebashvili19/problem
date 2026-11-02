@@ -82,6 +82,7 @@ export type MarkFixedType = z.infer<typeof MarkFixedSchema>;
 
 export const CreateCommentSchema = z.object({
   body: plainText(1, COMMENT_MAX),
+  parentId: z.string().min(24).max(24).regex(/^[a-f0-9]{24}$/i).optional(),
 });
 
 export type CreateCommentType = z.infer<typeof CreateCommentSchema>;

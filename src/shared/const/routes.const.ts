@@ -10,4 +10,5 @@ export const ROUTES = {
   notifications: '/notifications',
   report: (shortId: string, slug: string) => `/r/${shortId}/${slug}`,
   editReport: (shortId: string) => `/report/${shortId}/edit`,
+  profile: (id: string, tab?: string) => (tab && tab !== 'reports' ? `/u/${id}?tab=${tab}` : `/u/${id}`),
 } as const;

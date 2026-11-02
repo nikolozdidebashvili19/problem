@@ -71,6 +71,55 @@ describe('createCommentService', () => {
   });
 });
 
+describe('createCommentService replies', () => {
+  const OTHER_ID = '507f1f77bcf86cd799439055';
+  const THREAD_ID = '507f1f77bcf86cd799439066';
+  const reply = (authorId: string, overrides: Record<string, unknown> = {}) => fakeComment({ authorId: oid(authorId), ...overrides });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsers.findPublicByIds.mockResolvedValue([]);
+    mockReports.findByShortId.mockResolvedValue(report);
+    mockComments.create.mockResolvedValue(fakeComment({ parentId: oid(COMMENT_ID) }));
+  });
+
+  it('threads the reply and notifies both the comment author and the report author', async () => {
+    mockComments.findById.mockResolvedValueOnce(reply(OTHER_ID));
+    const result = await createCommentService(user(COMMENTER_ID), 'abcd2345', { body: 'Agreed', parentId: COMMENT_ID });
+    expect(result.status).toBe(201);
+    expect(result.data).toMatchObject({ parentId: COMMENT_ID });
+    expect(mockComments.create).toHaveBeenCalledWith(expect.objectContaining({ parentId: COMMENT_ID }));
+    expect(mockNotify).toHaveBeenCalledWith([
+      { userId: OTHER_ID, type: 'comment_reply', reportId: REPORT_ID, actorId: COMMENTER_ID },
+      { userId: AUTHOR_ID, type: 'comment', reportId: REPORT_ID, actorId: COMMENTER_ID },
+    ]);
+  });
+
+  it('notifies once when the report author is the one replied to', async () => {
+    mockComments.findById.mockResolvedValueOnce(reply(AUTHOR_ID));
+    await createCommentService(user(COMMENTER_ID), 'abcd2345', { body: 'Agreed', parentId: COMMENT_ID });
+    expect(mockNotify).toHaveBeenCalledWith([
+      { userId: AUTHOR_ID, type: 'comment_reply', reportId: REPORT_ID, actorId: COMMENTER_ID },
+    ]);
+  });
+
+  it('keeps a reply to a reply in the same thread', async () => {
+    mockComments.findById.mockResolvedValueOnce(reply(OTHER_ID, { parentId: oid(THREAD_ID) }));
+    await createCommentService(user(COMMENTER_ID), 'abcd2345', { body: 'Agreed', parentId: COMMENT_ID });
+    expect(mockComments.create).toHaveBeenCalledWith(expect.objectContaining({ parentId: THREAD_ID }));
+  });
+
+  it('refuses replies to deleted comments or comments on another report', async () => {
+    mockComments.findById.mockResolvedValueOnce(reply(OTHER_ID, { deletedAt: new Date() }));
+    const deleted = await createCommentService(user(COMMENTER_ID), 'abcd2345', { body: 'Agreed', parentId: COMMENT_ID });
+    mockComments.findById.mockResolvedValueOnce(reply(OTHER_ID, { reportId: oid(OTHER_ID) }));
+    const elsewhere = await createCommentService(user(COMMENTER_ID), 'abcd2345', { body: 'Agreed', parentId: COMMENT_ID });
+    expect(deleted).toEqual({ data: { error: 'COMMENT_NOT_FOUND' }, status: 404 });
+    expect(elsewhere.status).toBe(404);
+    expect(mockComments.create).not.toHaveBeenCalled();
+  });
+});
+
 describe('listCommentsService', () => {
   beforeEach(() => vi.clearAllMocks());
 

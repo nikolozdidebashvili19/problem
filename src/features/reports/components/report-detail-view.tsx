@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 
 import { CategoryIcon } from '@/features/categories/components/category-icon';
 import { CommentSection } from '@/features/comments/components/comment-section';
+import { AuthorName } from '@/features/profiles/components/author-name';
 import { RemovedReport } from '@/features/reports/components/removed-report';
 import { ReportGallery } from '@/features/reports/components/report-gallery';
 import { ReportOwnerActions } from '@/features/reports/components/report-owner-actions';
@@ -32,9 +33,8 @@ export const ReportDetailView = async ({ shortId, slug }: ReportDetailViewProps)
   // Slugs change on edit; old links resolve by shortId and land on the canonical URL
   if (slug !== report.slug) redirect(ROUTES.report(report.shortId, report.slug));
 
-  const [t, tReport, tForm, tCommon, locale] = await Promise.all([
+  const [t, tForm, tCommon, locale] = await Promise.all([
     getTranslations('reportPage'),
-    getTranslations('report'),
     getTranslations('reportForm'),
     getTranslations('common'),
     getLocale(),
@@ -69,7 +69,7 @@ export const ReportDetailView = async ({ shortId, slug }: ReportDetailViewProps)
         <h1 className="text-2xl leading-tight sm:text-3xl">{report.title}</h1>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
           <StatusBadge status={report.status} />
-          <span>{tReport('by', { name: report.authorName ?? tReport('deletedUser') })}</span>
+          <AuthorName authorId={report.authorId} name={report.authorName} />
           <span aria-hidden="true">·</span>
           <time dateTime={report.createdAt}>{formatReportDate(report.createdAt, locale)}</time>
         </div>

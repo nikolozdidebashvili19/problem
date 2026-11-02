@@ -12,11 +12,12 @@ type FeedListProps = {
   query: FeedLinkParams;
   initialItems: ReportCardData[];
   initialCursor: string | null;
+  endpoint?: string;
 };
 
-export const FeedList = ({ query, initialItems, initialCursor }: FeedListProps) => {
+export const FeedList = ({ query, initialItems, initialCursor, endpoint }: FeedListProps) => {
   const t = useTranslations('feed');
-  const { items, hasMore, loading, failed, loadMore } = useFeedPagination({ query, initialItems, initialCursor });
+  const { items, hasMore, loading, failed, loadMore } = useFeedPagination({ query, initialItems, initialCursor, endpoint });
 
   return (
     <div className="flex flex-col gap-3">
